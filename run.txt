@@ -1,0 +1,2 @@
+source install/setup.bash
+ros2 launch takeoff_land_offboard takeoff_land.launch.py
