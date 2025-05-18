@@ -11,6 +11,8 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
+find_package(geometry_msgs REQUIRED)
+
 find_package(MAVSDK REQUIRED)
 
 add_executable(takeoff_land_offboard
@@ -21,6 +23,7 @@ ament_target_dependencies(takeoff_land_offboard
     rclcpp
     std_msgs
     std_srvs
+    geometry_msgs
 )
 
 # Link MAVSDK

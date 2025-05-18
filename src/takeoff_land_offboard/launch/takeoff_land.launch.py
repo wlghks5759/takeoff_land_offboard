@@ -7,30 +7,48 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'connection_url',
-            default_value='udpin://0.0.0.0:14540', # Default for SITL
+            default_value='udpin://0.0.0.0:14540',
             description='MAVSDK connection URL'
         ),
         DeclareLaunchArgument(
             'takeoff_altitude',
-            default_value='5.0', # Default takeoff altitude in meters
-            description='Target takeoff altitude in meters'
+            default_value='2.0', 
+            description='Target takeoff altitude in meters (relative to home)'
         ),
         DeclareLaunchArgument(
-            'mission_hold_duration_s',
-            default_value='10', # Default hold duration in seconds
-            description='Duration to hold position in air in seconds'
+            'square_side_length_m',
+            default_value='10.0',
+            description='Side length of the square path in meters'
         ),
-
+        DeclareLaunchArgument(
+            'altitude_layer1_m',
+            default_value='2.0',
+            description='Relative altitude for the first layer of the square path'
+        ),
+        DeclareLaunchArgument(
+            'altitude_layer2_m',
+            default_value='4.0',
+            description='Relative altitude for the second layer of the square path'
+        ),
+        DeclareLaunchArgument(
+            'waypoint_threshold_m',
+            default_value='1.0',  # New threshold parameter for waypoint completion
+            description='Distance threshold in meters to consider waypoint reached'
+        ),
+        
         Node(
-            package='takeoff_land_offboard', # 패키지 이름은 실제 패키지 이름으로 변경
-            executable='takeoff_land_offboard', # 실행 파일 이름은 실제 빌드된 이름으로 변경
+            package='takeoff_land_offboard',  # Use your actual package name here
+            executable='takeoff_land_offboard',  # Use your actual executable name here
             name='autonomous_flight_node',
             output='screen',
             emulate_tty=True,
             parameters=[{
                 'connection_url': LaunchConfiguration('connection_url'),
                 'takeoff_altitude': LaunchConfiguration('takeoff_altitude'),
-                'mission_hold_duration_s': LaunchConfiguration('mission_hold_duration_s')
+                'square_side_length_m': LaunchConfiguration('square_side_length_m'),
+                'altitude_layer1_m': LaunchConfiguration('altitude_layer1_m'),
+                'altitude_layer2_m': LaunchConfiguration('altitude_layer2_m'),
+                'waypoint_threshold_m': LaunchConfiguration('waypoint_threshold_m'),  # Pass the new parameter
             }]
         )
     ])
