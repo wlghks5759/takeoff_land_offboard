@@ -91,10 +91,18 @@ struct MissionWaypoint {
 
     MissionWaypoint(double lat, double lon, float alt, float yaw, std::string desc = "") :
         latitude_deg(lat), longitude_deg(lon), relative_altitude_m(alt), yaw_deg(yaw), description(std::move(desc)) {}
+    // 생성자가 없다면 이렇게 사용해야 함
+    // MissionWaypoint wp_old;
+    // wp_old.latitude_deg = 47.3979;
+    // wp_old.longitude_deg = 8.5458;
+    // wp_old.relative_altitude_m = 10.0f;
+    // wp_old.yaw_deg = 90.0f;
+    // wp_old.description = "First Waypoint";
 };
 
 namespace FlightConstants { // Constants grouped in a namespace
     const double EARTH_RADIUS_M = 6371000.0;
+    // size_t int의 크기버전임
     const size_t WAYPOINTS_PER_SQUARE_LAYER = 4;
 }
 
@@ -123,11 +131,11 @@ public:
 
         RCLCPP_INFO(this->get_logger(), "Connecting to MAVSDK with URL: %s", connection_url_.c_str());
         
-        // Use COMPONENT_AUTOPILOT or COMPONENT_ONBOARD_COMPUTER if this node is running on the drone.
-        // Use COMPONENT_GROUND_STATION if this node is external control.
+        // 힙기반 동적 메모리 할당 : 공식문서에서는 스택메모리로 구성함. new_delete 안씀 스택메모리는
         mavsdk_ = std::make_unique<Mavsdk>(Mavsdk::Configuration{ComponentType::GroundStation});
         ConnectionResult connection_result = mavsdk_->add_any_connection(connection_url_);
 
+        //  여기서부터 다시보기
         if (connection_result != ConnectionResult::Success) {
             RCLCPP_ERROR(this->get_logger(), "MAVSDK connection failed: %s", connection_result_str(connection_result).c_str());
             // rclcpp::shutdown(); // Shutdown should be handled more gracefully or let the main handle it
