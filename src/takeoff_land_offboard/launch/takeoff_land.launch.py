@@ -11,11 +11,6 @@ def generate_launch_description():
             description='MAVSDK connection URL'
         ),
         DeclareLaunchArgument(
-            'takeoff_altitude',
-            default_value='2.0', 
-            description='Target takeoff altitude in meters (relative to home)'
-        ),
-        DeclareLaunchArgument(
             'square_side_length_m',
             default_value='10.0',
             description='Side length of the square path in meters'
@@ -44,7 +39,6 @@ def generate_launch_description():
             emulate_tty=True,
             parameters=[{
                 'connection_url': LaunchConfiguration('connection_url'),
-                'takeoff_altitude': LaunchConfiguration('takeoff_altitude'),
                 'square_side_length_m': LaunchConfiguration('square_side_length_m'),
                 'altitude_layer1_m': LaunchConfiguration('altitude_layer1_m'),
                 'altitude_layer2_m': LaunchConfiguration('altitude_layer2_m'),
