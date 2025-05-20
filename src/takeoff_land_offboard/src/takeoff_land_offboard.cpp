@@ -181,7 +181,7 @@ public:
         telemetry_ = std::make_shared<Telemetry>(system_);
         action_ = std::make_shared<Action>(system_);
 
-        const auto set_pos_rate_result = telemetry_->set_rate_position(5.0); // Hz
+        const auto set_pos_rate_result = telemetry_->set_rate_position(5.0); // 드론 위치정보를 0.2초마다 한번씩 보낸다.
         if (set_pos_rate_result != Telemetry::Result::Success) {
             RCLCPP_WARN(this->get_logger(), "Setting position rate failed: %s", telemetry_result_str(set_pos_rate_result).c_str());
         }
@@ -278,11 +278,21 @@ private:
 
     void offset_lat_lon(double lat_in_deg, double lon_in_deg, double north_m, double east_m,
                         double& lat_out_deg, double& lon_out_deg) const {
+        // 만약 입력 위도/경도가 거의 0에 가깝다면 경고 (홈 위치 설정 전이거나 의도치 않은 값일 수 있음)
         if (std::abs(lat_in_deg) < 1e-7 && std::abs(lon_in_deg) < 1e-7) {
             RCLCPP_WARN_ONCE(this->get_logger(), "offset_lat_lon called with near-zero initial lat/lon. Results might be inaccurate if this is not intended (e.g. before home set).");
         }
+        // 입력 위도를 라디안으로 변환
         double lat_in_rad = lat_in_deg * M_PI / 180.0;
+        // 북쪽으로 이동한 거리만큼 위도 변화 계산
+        // 위도 1도의 거리 = 지구 둘레 / 360 = 2 * PI * EARTH_RADIUS / 360
+        // 위도 변화량 (도) = (이동 거리_m / 미터당 위도_도)
+        //                  = 이동 거리_m / (EARTH_RADIUS_M * (PI / 180.0))  <-- 이건 1라디안당 거리
+        //                  = (north_m / EARTH_RADIUS_M) * (180.0 / M_PI)    <-- (이동거리/반지름)은 라디안 변화량, 이걸 다시 도로 변환
         lat_out_deg = lat_in_deg  + (north_m / FlightConstants::EARTH_RADIUS_M) * (180.0 / M_PI);
+        // 동쪽으로 이동한 거리만큼 경도 변화 계산
+        // 경도 1도의 거리는 위도에 따라 달라짐 (극지방으로 갈수록 짧아짐) -> cos(위도) 항 필요
+        // 경도 변화량 (도) = (east_m / (EARTH_RADIUS_M * cos(lat_in_rad))) * (180.0 / M_PI)
         lon_out_deg = lon_in_deg + (east_m / (FlightConstants::EARTH_RADIUS_M * cos(lat_in_rad))) * (180.0 / M_PI); // Corrected cos application
     }
 
@@ -315,6 +325,7 @@ private:
 
         // Layer 2 (e.g., 4m) - Clockwise square
         offset_lat_lon(home_latitude_deg_, home_longitude_deg_, side / 2.0, side / 2.0, lat_wp, lon_wp);
+        // vector::push_back 는 이미 있는 걸 넣는거고 empace_back은 정의되지 않았던 인자를 직접넣는건데 넣고 바로사라짐 -- 메모리 효율적
         waypoints_.emplace_back(lat_wp, lon_wp, alt2, 45.0f, "L2_C1_NE");
         offset_lat_lon(home_latitude_deg_, home_longitude_deg_, -side / 2.0, side / 2.0, lat_wp, lon_wp);
         waypoints_.emplace_back(lat_wp, lon_wp, alt2, 135.0f, "L2_C2_SE");
